@@ -27,7 +27,7 @@ class PluginManager(object):
             try:
                 module_path, class_name = v.rsplit('.',1)   # 切分字符串获得模块路径和类名
                 m = importlib.import_module(module_path)    # 根据字符串获得模块
-                cls = getattr(m, class_name)    # 通过类名字符串，反射获得类
+                cls = getattr(m, class_name)    # 通过类名字符串，反射获得模块中的类
                 if hasattr(cls, 'initial'):
                     obj = cls.initial()
                 else:

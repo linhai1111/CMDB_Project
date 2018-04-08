@@ -20,14 +20,18 @@ SSH_KEY = '/XX/XX/XX'   # 通过公钥私钥来连接远程服务器实现免密
 SSH_PORT = 22
 
 PLUGINS_DICT ={     # 插件字典，通过字符串导入模块
-    'basic':'src.plugins.basic.Basic',
-    'board':'src.plugins.basic.Board',
-    'cpu':'src.plugins.basic.Cpu',
-    'disk':'src.plugins.basic.Disk',
-    'memory':'src.plugins.basic.Memory',
-    'nic':'src.plugins.basic.Nic',
+    'basic': "src.plugins.basic.Basic",
+    'board': "src.plugins.board.Board",
+    'cpu': "src.plugins.cpu.Cpu",
+    'disk': "src.plugins.disk.Disk",
+    'memory': "src.plugins.memory.Memory",
+    'nic': "src.plugins.nic.Nic",
 }
 
 
 # api接口 url地址
-API = "http://www.oldboyedu.com"
+# API = "http://www.oldboyedu.com"
+API = "http://127.0.0.1:8000/api/asset.html"
+
+# 用于服务器唯一标识符，防止服务器数量出现叠加错误
+CERT_PATH = os.path.join(BASEDIR,'config','cert')
