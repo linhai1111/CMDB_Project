@@ -9,6 +9,7 @@ class Nic(object):
     """
     获取服务器网卡信息
     """
+
     def __init__(self):
         pass
 

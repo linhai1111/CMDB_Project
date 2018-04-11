@@ -1,9 +1,12 @@
 import os
 from lib.conf.config import settings
+
+
 class Cpu:
     """
     获取服务器CPUT信息
     """
+
     def __init__(self):
         pass
 

@@ -1,6 +1,7 @@
 from lib.conf.config import settings
 import os
 
+
 class Board:
     """
     获取服务器主板信息

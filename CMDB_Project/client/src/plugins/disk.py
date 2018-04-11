@@ -2,10 +2,12 @@ import re
 import os
 from lib.conf.config import settings
 
+
 class Disk:
     """
     获取服务器硬盘信息
     """
+
     def __init__(self):
         pass
 

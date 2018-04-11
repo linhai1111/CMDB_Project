@@ -9,6 +9,7 @@ class Memory(object):
     """
     获取服务器内存信息
     """
+
     def __init__(self):
         pass
 

@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 class Base(object):
     """
-    往api发送数据
+    负责往api发送数据
     """
 
     def post_asset(self, server_info):
@@ -20,7 +20,7 @@ class Base(object):
 
 class Agent(Base):
     """
-    agent方式采集数据并提交到api
+    用agent方式采集数据并提交到api
     """
 
     def excute(self):
@@ -39,10 +39,9 @@ class Agent(Base):
         self.post_asset(servier_info)  # 子类对象调用父类方法来发送数据
 
 
-
 class SSHSALT(Base):
     """
-    针对SSH方式和SALT方式采集数据和发送
+    用SSH方式和SALT方式采集数据和发送
     """
 
     def get_host(self):  # 该方式先获取未采集过数据的主机列表
