@@ -3,7 +3,8 @@ from lib.conf.config import settings
 from src.plugins import PluginManager
 import json
 from concurrent.futures import ThreadPoolExecutor
-
+from lib.utils import encrypt
+from lib.utils import auth
 
 class Base(object):
     """
@@ -12,12 +13,14 @@ class Base(object):
 
     def post_asset(self, server_info):
         # 将数据转换成json字符串格式发送
-        requests.post(settings.API, json=server_info)  # 数据封装在body中: 会在源码中自动转换 json.dumps(server_info)
-        # headers= {'content-type':'application/json'}
-        # request.body   # 需从body中取出数据
-        # json.loads(request.body)
-
-
+        data = encrypt(json.dumps(server_info))    # 将字典格式的数据转换成encrypt所需的字符串格式,然后加密
+        response = requests.post(
+            url=settings.API,
+            data = data,
+            headers={'OpenKey':auth(), 'Content-Type':'application/json'}   # 
+        )
+        print(response.text)
+    
 class Agent(Base):
     """
     用agent方式采集数据并提交到api

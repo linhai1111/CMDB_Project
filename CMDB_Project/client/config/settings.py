@@ -35,3 +35,5 @@ API = "http://127.0.0.1:8000/api/asset.html"
 
 # 用于服务器唯一标识符，防止服务器数量出现叠加错误
 CERT_PATH = os.path.join(BASEDIR, 'config', 'cert')
+
+DATA_KEY = b'dfdsdfsasdfdsdfs'  # AES加密和解密所需的Key

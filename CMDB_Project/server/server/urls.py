@@ -19,5 +19,7 @@ from django.conf.urls import url
 from django.conf.urls import include
 urlpatterns = [
     path('admin/', admin.site.urls),
-    url(r'api/', include('api.urls'))
+    url(r'api/', include('api.urls')),  #
+    url(r'backend/', include('backend.urls')),  # 后台管理界面
+
 ]
