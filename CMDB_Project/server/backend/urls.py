@@ -9,4 +9,10 @@ urlpatterns =[
     url(r'asset.html$', views.asset),   # 进入页面
     url(r'asset_json.html$', views.asset_json),   # ajax方式获取数据
 
+    # idc机房信息展示
+    url(r'^idc.html$', views.idc),
+    url(r'^idc_json.html$', views.idc_json),
+
+    url(r'^chart.html$', views.chart ),
+
 ]

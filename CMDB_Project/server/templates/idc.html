@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css" />
+</head>
+<body>
+<div style="width: 700px; margin: 0 auto">
+    <h1>IDC列表</h1>
+       {% include 'nb-tpl.html' %}
+</div>
+
+<script src="/static/jquery-1.12.4.js"></script>
+<script src = "/static/nb-list.js"></script>
+<script>
+    {#调用自定义的jQuery函数#}
+     $.xx('/backend/curd_json.html');
+</script>
+</body>
+</html>

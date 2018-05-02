@@ -164,3 +164,34 @@ def asset(request):
         #         models.AssetRecord.objects.create(asset_obj=server_obj.asset, content=content)
 
         return HttpResponse('数据发送成功')
+
+from django.http import JsonResponse
+def servers(request):
+    # http://127.0.0.1:8000/api/servers.html GET:   获取服务器列表
+    # http://127.0.0.1:8000/api/servers.html POST:  创建服务器
+    # http://127.0.0.1:8000/api/servers/1.html GET: 获取单条信息
+    # http://127.0.0.1:8000/api/servers/1.html DELETE: 删除单条信息
+    # http://127.0.0.1:8000/api/servers/1.html PUT: 更新
+    if request.method == 'GET':
+        v = models.Server.objects.values('id', 'hostname')
+        server_list = list(v)
+        return JsonResponse(server_list, safe=False)    # 默认只能发送字典格式数据
+    elif request.method == 'POST':
+        return JsonResponse(status=201)
+
+def servers_detail(request,nid):
+    """
+    获得单条数据的操作
+    :param request:
+    :param nid:
+    :return:
+    """
+    if request.method == 'GET':
+        obj = models.Server.objects.filter(id=nid).first()
+        return HttpResponse('...')
+    elif request.method == "DELETE":
+        models.Server.objects.filter(id=nid).delete()
+        return HttpResponse()
+    elif request.method == 'PUT':
+        request.body
+        models.Server.objects.filter(id=nid).update()

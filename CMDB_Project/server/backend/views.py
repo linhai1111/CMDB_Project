@@ -4,6 +4,8 @@ from repository import models
 from django.shortcuts import HttpResponse
 from datetime import datetime
 from datetime import date
+
+
 # Create your views here.
 class JsonCustomEncoder(json.JSONEncoder):
     """
@@ -17,6 +19,36 @@ class JsonCustomEncoder(json.JSONEncoder):
             return value.strftime('%Y-%m-%d')
         else:
             return json.JSONEncoder.default(self, value)  # 调用父类中的default方法
+
+def get_data_list(request,model_cls,table_config):
+    """
+    根据搜索条件进行查询
+    :param request:
+    :param model_cls:
+    :param table_config:
+    :return:
+    """
+    values_list = []
+    for row in table_config:
+        if not row['q']:
+            continue
+        values_list.append(row['q'])
+
+    from django.db.models import Q
+
+    condition = request.GET.get('condition')
+    condition_dict = json.loads(str(condition))
+
+    con = Q()
+    for name,values in condition_dict.items():  # {'hostname__contains': ['c1', 'c2']}
+        ele = Q() # select xx from where cabinet_num=sdf or cabinet_num='123'
+        ele.connector = 'OR'
+        for item in values: #  ['c1', 'c2']
+            ele.children.append((name,item))
+        con.add(ele, 'AND') # (AND: (OR: ('hostname__contains', 'c1'), ('hostname__contains', 'c2')))
+
+    server_list = model_cls.objects.filter(con).values(*values_list)
+    return server_list
 
 
 def curd(request):
@@ -34,69 +66,30 @@ def curd_json(request):
     :param request:
     :return:
     """
+    if request.method == 'DELETE':
+        id_list = json.loads(str(request.body, encoding='utf-8'))  # 需要从body请求体中取出数据
+        print(id_list)
+        return HttpResponse('--')
+    elif request.method == 'POST':
+        pass
+    elif request.method == 'PUT':
+        all_list = json.loads((str(request.body, encoding='utf-8')))   # 编码成字符串
+        print(all_list)
+        return HttpResponse('---')
+    elif request.method == 'GET':
+        from backend.page_config import curd as curdConfig
+        server_list = get_data_list(request, models.Server, curdConfig.table_config)
 
-    table_config = [  # 配置文件，用于前端页面数据定制显示
-        # 生成checkbox多选框字段
-        {
-            'q': None,  # 不作为数据库查询字段
-            'title': '选择',
-            'display': True,
-            'text': {
-                'tpl': "<input type='checkbox' value='{n1}' />",
-                'kwargs': {'n1': '@id',}
-            },
-            'attrs': {'nid': '@id'}
-        },
-
-        # 生成id字段
-        {
-            'q': 'id',  # 用于数据库查询字段名
-            'title': 'ID',  # 用于前端页面中表头字段名的显示
-            'display':False,# display表示该字段在前端页面表格表头是否显示
-            'text': { # text用来将数据库中取出的值进行字符串格式化
-                'tpl': '{n1}',  # 用于生成格式化字符串中的占位符模板
-                'kwargs': {'n1': '@id'}  # 占位符中具体的id数值,用于生成链接中对单条数据的操作
-            },
-             'attrs':{'k1':'v1','k2':'@hostname'}   # 为前端标签添加属性及属性值
-        },
-        {
-            'q': 'hostname',
-            'title': '主机名',
-            'display': True,
-            'text': {
-                'tpl': '{n1}-{n2}',
-                'kwargs': {'n1': '@hostname', 'n2': '@id'}
-            },
-            'attrs':{'edit-enable':'true', 'k2':'@hostname'}    # edit-enable允许编辑， k2表示字段当前值，用于进行值的前后对比完成值的修改
-        },
-
-        # 页面显示 操作： 删除，编辑，a标签生成
-        {
-            'q':None,
-            'title':'操作',
-            'display': True,
-            'text':{
-                'tpl': "<a href='/del?nid={nid}'>删除</a>",
-                'kwargs':{'nid':'@id'},
-            },
-            'attrs': {'k1': 'v1', 'k2': '@hostname'}
-        },
-    ]
-
-    # 组装数据库查询所需的字段
-    value_list = []
-    for row in table_config:
-        if not row['q']:
-            continue
-        value_list.append(row['q'])
-
-    server_list = models.Server.objects.values(*value_list)   # 传入列表获得字典格式数据
-    ret = {
-        'server_list':list(server_list),   # 将Querylist转换成列表
-        'table_config':table_config,
-    }
-    return HttpResponse(json.dumps(ret, cls=JsonCustomEncoder))
-
+        ret = {
+            'server_list': list(server_list),  # 将Querylist转换成列表
+            'table_config': curdConfig.table_config,
+            'search_config': curdConfig.search_config,
+            'global_dict':{ # 用于生成下拉框
+                'device_type_choices':models.Asset.device_type_choices,
+                'device_status_choices':models.Asset.device_status_choices,
+            }
+        }
+        return HttpResponse(json.dumps(ret, cls=JsonCustomEncoder))
 
 
 # 资产信息展示
@@ -106,112 +99,72 @@ def asset(request):
     :param request:
     :return:
     """
-    return render(request, 'asset.html',)
+    return render(request, 'asset.html', )
 
-def asset_json(reqeust):
+
+def asset_json(request):
     """
     ajax获取资产信息数据
     :param reqeust:
     :return:
     """
-    # @代表需要字符串格式化，@@用于将数字结果转换成对应字符串展示
-    table_config = [    # 配置文件
-        # 生成checkbox多选框字段
-        {
-            'q': None,  # 不作为数据库查询字段
-            'title': '选择',
-            'display': True,
-            'text': {
-                'tpl': "<input type='checkbox' value='{n1}' />",
-                'kwargs': {'n1': '@id', }
-            },
-            'attrs': {'nid': '@id'}
-        },
-
-        {
-            'q':'id',
-            'title':'ID',
-            'display':False,
-            'text':{
-                'tpl': "{n1}",
-                'kwargs': {'n1': '@id'}
-            },
-            'attrs':{'k1':'v1', 'k2':'@id'}
-        },
-        {
-            'q': 'device_type_id',
-            'title': '资产类型',
-            'display': True,
-            'text': {
-                'tpl': "{n1}",
-                'kwargs': {'n1': '@@device_type_choices'}
-            },
-            # origin表示数据库字段id对应的值，  global_key表示数据库中下拉框的数据
-            'attrs':{'k1':'v1','origin':'@device_type_id','edit-enable':'true','edit-type':'select','global_key':'device_type_choices'}
-        },
-        {
-            'q': 'device_status_id',
-            'title': '状态',
-            'display': True,
-            'text': {
-                'tpl': "{n1}",
-                'kwargs': {'n1': '@@device_status_choices'}
-            },
-            'attrs':{'edit-enable':'true','origin': '@device_status_id','edit-type':'select','global_key':'device_status_choices' }
-        },
-        {
-            'q': 'cabinet_num',
-            'title': '机柜号',
-            'display': True,
-            'text': {
-                'tpl': "{n1}",
-                'kwargs': {'n1': '@cabinet_num'}
-            },
-            'attrs': {'k1': 'v1', 'k2': '@id'}
-        },
-
-        {
-            'q': 'idc__name',
-            'title': '机房',
-            'display': True,
-            'text': {
-                'tpl': "{n1}",
-                'kwargs': {'n1': '@idc__name'}
-            },
-            'attrs': {'k1': 'v1', 'k2': '@id'}
-        },
-        # 页面显示：标题：操作；删除，编辑：a标签
-        {
-            'q': None,
-            'title': '操作',
-            'display': True,
-            'text': {
-                'tpl': "<a href='/del?nid={nid}'>删除</a>",
-                'kwargs': {'nid': '@id'}
-            },
-            'attrs': {'k1': 'v1', 'k2': '@id'}
-        },
-    ]
-    # 用于数据库查询字段
-    value_list = []
-    for row in table_config:
-        if not row['q']:
-            continue
-        value_list.append(row['q'])
-    server_list = models.Asset.objects.values(*value_list)
+    from backend.page_config import asset as assetConfig
+    server_list = get_data_list(request, models.Asset, assetConfig.table_config)
+    print(server_list)
 
     # global_dict用于生成选择元组中的数字对应的字符串
-    ret={
+    ret = {
         'server_list': list(server_list),
-        'table_config':table_config,
-        'global_dict':{
-            'device_type_choices':models.Asset.device_type_choices,
-            'device_status_choices':models.Asset.device_status_choices,
+        'table_config': assetConfig.table_config,
+        'search_config': assetConfig.search_config,
+        'global_dict': {
+            'device_type_choices': models.Asset.device_type_choices,
+            'device_status_choices': models.Asset.device_status_choices,
         }
     }
     return HttpResponse(json.dumps(ret, cls=JsonCustomEncoder))
 
 
+def idc(request):
+    """
+    跳转到idc页面
+    :param request:
+    :return:
+    """
+    return render(request, 'idc.html')
 
+def idc_json(request):
+    if request.method == 'DELETE':
+        id_list = json.loads(str(request.body, encoding='utf-8'))
+        print(id_list)
+        return HttpResponse('删除成功')
+    elif request.method == 'PUT':
+        all_list = json.loads(str(request.body, encoding='utf-8'))
+        print(all_list)
+        return HttpResponse('保存成功')
+    elif request.method == 'GET':
+        from backend.page_config import idc
+        values_list = []
+        for row in idc.table_config:    # 从配置文件中获取数据库查询所需的字段
+            if not row['q']:
+                continue
+            values_list.append(row['q'])
+        server_list = models.IDC.objects.values(*values_list)
+
+        ret={
+            'server_list':list(server_list),
+            'table_config':idc.table_config,
+            'global_dict':{}
+        }
+    return HttpResponse(json.dumps(ret, cls=JsonCustomEncoder))
+
+
+def chart(request):
+    """
+    跳转到页面
+    :param request:
+    :return:
+    """
+    return render(request, 'chart.html')
 
 
